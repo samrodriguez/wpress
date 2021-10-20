@@ -1,0 +1,63 @@
+version: '3.9'
+services:
+  wordpress:
+    image: 'wordpress:latest'
+    container_name: wp-wordpress
+    #restart: always
+    ports:
+      - '8181:80'
+    environment:
+      WORDPRESS_DB_HOST: 'db:3306'
+      WORDPRESS_DB_USER: '${DB_USER}'
+      WORDPRESS_DB_PASSWORD: '${DB_PASSWORD}'
+      WORDPRESS_DB_NAME: '${DB_DATABASE}'
+    volumes:
+      - 'wordpress:/var/www/html'
+    links:
+      - 'db:db'
+      - 'mailhog:mailhog'
+    depends_on:
+      - db
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2048M
+        reservations:
+          cpus: '0.25'
+          memory: 1024M
+  db:
+    image: mariadb
+    container_name: wp-mariadb
+    ports:
+      - '3307:3306'
+    environment:
+      MARIADB_USER: '${DB_USER}'
+      MARIADB_ROOT_PASSWORD: '${DB_PASSWORD}'
+      MARIADB_DATABASE: '${DB_DATABASE}'
+    volumes:
+      - './mariadb:/var/lib/mysql'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+  mailhog:
+    build: ./mailhog
+    container_name: wp-mailhog
+    ports:
+      - '8025:8025'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+volumes:
+  mariadb: null
+  wordpress: null
